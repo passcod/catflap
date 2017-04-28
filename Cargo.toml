@@ -1,0 +1,6 @@
+[package]
+name = "catflap"
+version = "0.1.0"
+authors = ["Félix Saparelli <felix@passcod.name>"]
+
+[dependencies]
