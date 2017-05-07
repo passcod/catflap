@@ -7,6 +7,8 @@ the socket.
 
 The idea is for tools that reload servers, for instance [cargo watch]:
 
+[cargo watch]: https://github.com/passcod/cargo-watch
+
 ```
 $ catflap -- cargo watch
 [Watching for changes... Ctrl-C to stop]
