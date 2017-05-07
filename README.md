@@ -41,7 +41,8 @@ $ catflap -h 0.0.0.0 -p 4567 [--] <command> [args...]
 ```
 
 The `<command>` is executed directly, without passing through a shell, so
-shellisms cannot be used directly. Additionally, you'll want to use `--` to separate catflap options from program options:
+shellisms cannot be used directly. Additionally, you'll want to use `--` to
+separate catflap options from program options:
 
 ```
 $ catflap 'foo && bar'
@@ -58,3 +59,7 @@ $ catflap -- sh -c 'foo && bar'
 
 Licensed under [MIT](https://passcod.mit-license.org).
 Made by [Félix Saparelli](https://passcod.name).
+
+The name is both because it's a small door that you install so that you don't
+have to constantly open and close and open and close a bigger door for your
+furry companion, and as a play on the `netcat` tool. 
