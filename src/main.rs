@@ -25,6 +25,10 @@ fn main() {
         exit(1);
     });
 
+    let fd = socket.as_raw_fd();
+    let on = socket.local_addr().unwrap();
+    println!("FD {} listening on {}", fd, on);
+
     let mut cmd_args = args.values_of("command")
         .unwrap()
         .collect::<Vec<&str>>();
@@ -33,7 +37,7 @@ fn main() {
 
     let err = Command::new(cmd)
         .args(cmd_args)
-        .env("LISTEN_FD", format!("{}", socket.as_raw_fd()))
+        .env("LISTEN_FD", format!("{}", fd))
         .exec();
 
     println!("Error running command: {}", err);
