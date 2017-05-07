@@ -10,7 +10,7 @@ The idea is for tools that reload servers, for instance [cargo watch]:
 [cargo watch]: https://github.com/passcod/cargo-watch
 
 ```
-$ catflap -- cargo watch
+$ catflap cargo watch
 [Watching for changes... Ctrl-C to stop]
 [Running 'cargo run']
    Compiling sample-server v0.1.0 (file:///home/code/rust/test)
