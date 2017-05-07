@@ -1,6 +1,9 @@
 [package]
-name = "catflap"
-version = "0.1.0"
 authors = ["Félix Saparelli <felix@passcod.name>"]
+name = "catflap"
+version = "1.0.0"
+homepage = "https://github.com/passcod/catflap"
+description = "Creates a TCP socket and passes its descriptor as the LISTEN_FD env variable."
 
 [dependencies]
+clap = "2.24.0"
