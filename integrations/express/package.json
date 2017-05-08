@@ -1,0 +1,10 @@
+{
+  "name": "catflap-express",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Félix Saparelli <me@passcod.name> (https://passcod.name)",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}

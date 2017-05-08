@@ -104,11 +104,12 @@ $ catflap -p0 cargo watch
 
 ## Example servers
 
-These can be compiled and run directly with `$ catflap cargo run` in the
-respective folder. Then simply: `$ curl -i http://localhost:5000`.
+These can be built and run directly in the respective folder.
+Then simply: `$ curl -i http://localhost:5000`.
 
-- [Hyper only](./integrations/hyper/src/main.rs).
-- [Using Iron](./integrations/iron/src/main.rs).
+- [Hyper only](./integrations/hyper).
+- [Using Iron](./integrations/iron).
+- [Express on Node.js](./integrations/express).
 
 ## Etc
 
