@@ -102,6 +102,14 @@ $ catflap -p0 cargo watch
 [Catflap listening at 127.0.0.1:55917]
 ```
 
+## Example servers
+
+These can be compiled and run directly with `$ catflap cargo run` in the
+respective folder. Then simply: `$ curl -i http://localhost:5000`.
+
+- [Hyper only](./integrations/hyper/src/main.rs).
+- [Using Iron](./integrations/iron/src/main.rs).
+
 ## Etc
 
 Licensed under [MIT](https://passcod.mit-license.org).
