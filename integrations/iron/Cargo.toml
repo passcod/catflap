@@ -1,0 +1,8 @@
+[package]
+authors = ["Félix Saparelli <felix@passcod.name>"]
+name = "catflap-iron"
+version = "0.1.0"
+
+[dependencies]
+hyper = "0.10.9"
+iron = "0.5.1"
