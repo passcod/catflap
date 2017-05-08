@@ -1,0 +1,7 @@
+[package]
+authors = ["Félix Saparelli <felix@passcod.name>"]
+name = "catflap-hyper"
+version = "0.1.0"
+
+[dependencies]
+hyper = "0.10.9"
