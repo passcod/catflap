@@ -1,12 +1,14 @@
 extern crate clap;
+extern crate libc;
+extern crate nix;
 
-use std::net::{SocketAddr, TcpListener};
-use std::os::unix::io::AsRawFd;
+use std::net::SocketAddr;
 use std::os::unix::process::CommandExt;
 use std::process::{Command, exit};
 use std::str::FromStr;
 
 mod args;
+mod sock;
 
 fn main() {
     let args = args::parse();
@@ -20,14 +22,17 @@ fn main() {
         exit(1);
     });
 
-    let socket = TcpListener::bind(addr).unwrap_or_else(|e| {
+	let fd = sock::on(addr).unwrap_or_else(|e| {
         println!("Could not bind: {}", e);
         exit(1);
     });
 
-    let fd = socket.as_raw_fd();
-    let on = socket.local_addr().unwrap();
-    println!("FD {} listening on {}", fd, on);
+	let at = sock::at(fd).unwrap_or_else(|e| {
+        println!("Could not get address: {}", e);
+        exit(1);
+    });
+
+	println!("FD {} listening at {}", fd, at);
 
     let mut cmd_args = args.values_of("command")
         .unwrap()
