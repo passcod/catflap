@@ -1,11 +1,17 @@
 [package]
-authors = ["Félix Saparelli <felix@passcod.name>"]
-description = "Creates a TCP socket and passes its descriptor as the LISTEN_FD env variable."
-homepage = "https://github.com/passcod/catflap"
 name = "catflap"
 version = "1.0.0"
 
+authors = ["Félix Saparelli <felix@passcod.name>"]
+categories = ["command-line-utilities", "development-tools"]
+description = "Creates a TCP socket and passes its descriptor as the LISTEN_FD env variable"
+homepage = "https://github.com/passcod/catflap"
+keywords = ["socket", "reload", "server"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/passcod/catflap"
+
 [dependencies]
-clap = "2.24.0"
+clap = "2.24.1"
 libc = "0.2.22"
 nix = "0.8.1"

@@ -32,7 +32,7 @@ fn main() {
         exit(1);
     });
 
-	println!("FD {} listening at {}", fd, at);
+	println!("[Catflap listening at {}]", at);
 
     let mut cmd_args = args.values_of("command")
         .unwrap()
