@@ -4,7 +4,7 @@ version = "1.0.0"
 
 authors = ["Félix Saparelli <felix@passcod.name>"]
 categories = ["command-line-utilities", "development-tools"]
-description = "Creates a TCP socket and passes its descriptor as the LISTEN_FD env variable"
+description = "Creates a TCP socket and passes its descriptor as an env variable"
 homepage = "https://github.com/passcod/catflap"
 keywords = ["socket", "reload", "server"]
 license = "MIT"

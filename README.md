@@ -6,9 +6,8 @@
 [![Build status (Travis)](https://img.shields.io/travis/passcod/catflap.svg?style=flat-square)](https://travis-ci.org/passcod/cargo-watch)
 
 This is a small CLI tool for unix-likes that creates a TCP socket at the
-address you tell it to, then passes its FD index to a child process using the
-`LISTEN_FD` environment variable. The child (or any descendants) can then bind
-the socket.
+address you tell it to, then passes its FD index to a child process using an
+environment variable. The child (or any descendants) can then bind the socket.
 
 The idea is for tools that reload servers, for instance [cargo watch]:
 
@@ -69,10 +68,18 @@ $ cargo install --force catflap
 ## Usage
 
 ```
-$ catflap [--] <command> [args...]
-$ catflap -p8000 [--] <command> [args...]
-$ catflap -h0.0.0.0 -p4567 [--] <command> [args...]
+$ catflap [options] [--] <command> [args...]
+
+$ catflap -e LISTEN_FDS -- <command> [args...]
+$ catflap -h 0.0.0.0 [--] <command> [args...]
+$ catflap -p 8000 [--] <command> [args...]
 ```
+
+|Option|Default|Description|
+|---|---|---|
+|`-e`, `--env`|`LISTEN_FD`|Environment variable that will hold the socket's FD.|
+|`-h`, `--host`|`127.0.0.1`|IP address (IPv4 or IPv6, no domain names) to bind the socket to.|
+|`-p`, `--port`|`5000`|Port to bind the socket to.|
 
 ### Command specifics
 
@@ -98,7 +105,7 @@ Catflap prints the socket's actual address right before it execs the given
 command, so you can find the right port to connect to.
 
 ```
-$ catflap -p0 cargo watch
+$ catflap -p 0 cargo watch
 [Catflap listening at 127.0.0.1:55917]
 ```
 
