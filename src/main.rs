@@ -32,6 +32,8 @@ fn main() {
         exit(1);
     });
 
+    let env = args.value_of("env").unwrap();
+
 	println!("[Catflap listening at {}]", at);
 
     let mut cmd_args = args.values_of("command")
@@ -42,7 +44,7 @@ fn main() {
 
     let err = Command::new(cmd)
         .args(cmd_args)
-        .env("LISTEN_FD", format!("{}", fd))
+        .env(env, format!("{}", fd))
         .exec();
 
     println!("Error running command: {}", err);
