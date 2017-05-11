@@ -17,11 +17,16 @@ pub fn parse() -> ArgMatches<'static> {
              .long("port")
              .default_value("5000"))
 
+        .arg(Arg::with_name("env")
+             .short("e")
+             .long("env")
+             .default_value("LISTEN_FD"))
+
         .arg(Arg::with_name("command")
              .multiple(true)
              .required(true))
 
-        .after_help("Creates a TCP socket then passes its descriptor to a child process using the LISTEN_FD environment variable. The child (or any descendants) can then bind the socket.\n\nThis is useful for server auto-reloaders, as it avoids EADDRINUSE and request-dropping.")
+        .after_help("Creates a TCP socket then passes its descriptor to a child process using the (default) LISTEN_FD environment variable. The child (or any descendants) can then bind the socket.\n\nThis is useful for server auto-reloaders, as it avoids EADDRINUSE and request-dropping.")
 
         .get_matches()
 }
