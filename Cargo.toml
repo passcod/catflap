@@ -1,17 +1,18 @@
 [package]
 name = "catflap"
 version = "1.1.0"
+edition = "2018"
 
 authors = ["Félix Saparelli <felix@passcod.name>"]
 categories = ["command-line-utilities", "development-tools"]
-description = "Creates a TCP socket and passes its descriptor as an env variable"
+description = "Creates sockets and passes descriptors to a child process (and/or descendants)"
 homepage = "https://github.com/passcod/catflap"
 keywords = ["socket", "reload", "server"]
-license = "MIT"
+license = "Artistic-2.0"
 readme = "README.md"
 repository = "https://github.com/passcod/catflap"
 
 [dependencies]
-clap = "2.24.1"
-libc = "0.2.22"
-nix = "0.8.1"
+clap = "2.33.0"
+libc = "0.2.66"
+nix = "0.16.1"
