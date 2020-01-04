@@ -1,5 +1,5 @@
-use clap::{App, AppSettings, Arg, ArgMatches};
 use crate::{check_socket_v4, check_socket_v6};
+use clap::{App, AppSettings, Arg, ArgMatches};
 
 pub fn parse() -> ArgMatches<'static> {
     App::new(env!("CARGO_PKG_NAME"))

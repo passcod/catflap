@@ -4,7 +4,7 @@ extern crate nix;
 
 use std::net::SocketAddr;
 use std::os::unix::process::CommandExt;
-use std::process::{exit, Command};
+use std::process::Command;
 use std::str::FromStr;
 
 mod args;
@@ -13,7 +13,7 @@ mod sock;
 use sock::SocketType;
 
 fn parse_socket_v4(s: &str, free_port: &mut u16) -> Result<SocketAddr, String> {
-    use std::net::{SocketAddrV4, Ipv4Addr};
+    use std::net::{Ipv4Addr, SocketAddrV4};
 
     if s == "auto" || s == ":" {
         let port = *free_port;
@@ -40,16 +40,26 @@ pub fn check_socket_v4(s: String) -> Result<(), String> {
 }
 
 fn parse_socket_v6(s: &str, free_port: &mut u16) -> Result<SocketAddr, String> {
-    use std::net::{SocketAddrV6, Ipv6Addr};
+    use std::net::{Ipv6Addr, SocketAddrV6};
 
     if s == "auto" || s == ":" {
         let port = *free_port;
         *free_port += 1;
-        Ok(SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::LOCALHOST, port, 0, 0)))
+        Ok(SocketAddr::V6(SocketAddrV6::new(
+            Ipv6Addr::LOCALHOST,
+            port,
+            0,
+            0,
+        )))
     } else if s.starts_with(':') {
         let port: String = s.chars().skip(1).collect();
         let port = u16::from_str(&port).map_err(|e| e.to_string())?;
-        Ok(SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::LOCALHOST, port, 0, 0)))
+        Ok(SocketAddr::V6(SocketAddrV6::new(
+            Ipv6Addr::LOCALHOST,
+            port,
+            0,
+            0,
+        )))
     } else {
         SocketAddrV6::from_str(s)
             .or_else(|_| {
@@ -66,143 +76,92 @@ pub fn check_socket_v6(s: String) -> Result<(), String> {
     parse_socket_v6(&s, &mut 0).map(|_| ())
 }
 
-fn main() {
+fn main() -> Result<(), String> {
     let args = args::parse();
+
+    macro_rules! extract_sockets_of_type {
+        ($args:ident, $sockets:ident, $option:literal, $socktype:expr, $parser:ident) => {
+            extract_sockets_of_type!($args, $sockets, $option, $socktype, $parser, 5000)
+        };
+        ($args:ident, $sockets:ident, $option:literal, $socktype:expr, $parser:ident, $start_port:expr) => {
+            let mut free_port = $start_port;
+            let mut n = $args.occurrences_of($option);
+            if n > 0 {
+                for s in $args.values_of($option).unwrap() {
+                    n = n.saturating_sub(1);
+                    $sockets.push((
+                        $parser(s, &mut free_port).map_err(|e| e.to_string())?,
+                        $socktype,
+                    ));
+                }
+
+                if n > 0 {
+                    for _ in 0..n {
+                        $sockets.push((
+                            $parser("auto", &mut free_port).map_err(|e| e.to_string())?,
+                            $socktype,
+                        ));
+                    }
+                }
+            }
+        };
+    }
 
     let mut sockets = Vec::new();
 
-    dbg!(&args);
-
-    let mut free_port = 5000;
-    let mut raws = args.occurrences_of("raw");
-    if raws > 0 {
-        for s in args.values_of("raw").unwrap() {
-            raws = raws.saturating_sub(1);
-            sockets.push((parse_socket_v4(s, &mut free_port).unwrap(), SocketType::Raw4));
-        }
-
-        if raws > 0 {
-            for _ in 0..raws {
-                sockets.push((parse_socket_v4("auto", &mut free_port).unwrap(), SocketType::Raw4));
-            }
-        }
-    }
-
-    let mut free_port = 5000;
-    let mut raw6s = args.occurrences_of("raw6");
-    if raw6s > 0 {
-        for s in args.values_of("raw6").unwrap() {
-            raw6s = raw6s.saturating_sub(1);
-            sockets.push((parse_socket_v6(s, &mut free_port).unwrap(), SocketType::Raw6));
-        }
-
-        if raw6s > 0 {
-            for _ in 0..raw6s {
-                sockets.push((parse_socket_v6("auto", &mut free_port).unwrap(), SocketType::Raw6));
-            }
-        }
-    }
-
-    let mut free_port = 5000;
-    let mut tcps = args.occurrences_of("tcp");
-    if tcps > 0 {
-        for s in args.values_of("tcp").unwrap() {
-            tcps = tcps.saturating_sub(1);
-            sockets.push((parse_socket_v4(s, &mut free_port).unwrap(), SocketType::Tcp4));
-        }
-
-        if tcps > 0 {
-            for _ in 0..tcps {
-                sockets.push((parse_socket_v4("auto", &mut free_port).unwrap(), SocketType::Tcp4));
-            }
-        }
-    }
-
-    let mut free_port = 5000;
-    let mut tcp6s = args.occurrences_of("tcp6");
-    if tcp6s > 0 {
-        for s in args.values_of("tcp6").unwrap() {
-            tcp6s = tcp6s.saturating_sub(1);
-            sockets.push((parse_socket_v6(s, &mut free_port).unwrap(), SocketType::Tcp6));
-        }
-
-        if tcp6s > 0 {
-            for _ in 0..tcp6s {
-                sockets.push((parse_socket_v6("auto", &mut free_port).unwrap(), SocketType::Tcp6));
-            }
-        }
-    }
-
-    let mut free_port = 5000;
-    let mut udps = args.occurrences_of("udp");
-    if udps > 0 {
-        for s in args.values_of("udp").unwrap() {
-            udps = udps.saturating_sub(1);
-            sockets.push((parse_socket_v4(s, &mut free_port).unwrap(), SocketType::Udp4));
-        }
-
-        if udps > 0 {
-            for _ in 0..udps {
-                sockets.push((parse_socket_v4("auto", &mut free_port).unwrap(), SocketType::Udp4));
-            }
-        }
-    }
-
-    let mut free_port = 5000;
-    let mut udp6s = args.occurrences_of("udp6");
-    if udp6s > 0 {
-        for s in args.values_of("udp6").unwrap() {
-            udp6s = udp6s.saturating_sub(1);
-            sockets.push((parse_socket_v6(s, &mut free_port).unwrap(), SocketType::Udp6));
-        }
-
-        if udp6s > 0 {
-            for _ in 0..udp6s {
-                sockets.push((parse_socket_v6("auto", &mut free_port).unwrap(), SocketType::Udp6));
-            }
-        }
-    }
+    extract_sockets_of_type!(args, sockets, "raw", SocketType::Raw4, parse_socket_v4);
+    extract_sockets_of_type!(args, sockets, "raw6", SocketType::Raw6, parse_socket_v6);
+    extract_sockets_of_type!(args, sockets, "tcp", SocketType::Tcp4, parse_socket_v4);
+    extract_sockets_of_type!(args, sockets, "tcp6", SocketType::Tcp6, parse_socket_v6);
+    extract_sockets_of_type!(args, sockets, "udp", SocketType::Udp4, parse_socket_v4);
+    extract_sockets_of_type!(args, sockets, "udp6", SocketType::Udp6, parse_socket_v6);
 
     if sockets.is_empty() {
-        sockets.push((parse_socket_v4("auto", &mut free_port).unwrap(), SocketType::Tcp4));
+        sockets.push((
+            parse_socket_v4("auto", &mut 5000).map_err(|e| e.to_string())?,
+            SocketType::Tcp4,
+        ));
     }
 
-    dbg!(sockets);
-
-    let addr = SocketAddr::from_str(&format!(
-        "{}:{}",
-        args.value_of("host").unwrap(),
-        args.value_of("port").unwrap()
-    ))
-    .unwrap_or_else(|e| {
-        println!("Bad address: {}", e);
-        exit(1);
-    });
-
-    let socktype = SocketType::Tcp4;
-
-    let fd = sock::on(addr, socktype).unwrap_or_else(|e| {
-        println!("Could not bind: {}", e);
-        exit(1);
-    });
-
-    let at = sock::at(fd).unwrap_or_else(|e| {
-        println!("Could not get address: {}", e);
-        exit(1);
-    });
+    let mut fds = Vec::with_capacity(sockets.len());
+    for (addr, socktype) in sockets {
+        let fd = sock::on(addr, socktype)
+            .map_err(|e| format!("binding {}/{}: {}", addr, socktype.short(), e))?;
+        let at =
+            sock::at(fd).map_err(|e| format!("naming {}/{}: {}", addr, socktype.short(), e))?;
+        fds.push((fd, at, socktype));
+    }
 
     let env = args.value_of("env").unwrap();
+    let nenv = args.value_of("nenv").unwrap();
 
-    println!("[Catflap listening at {}]", at);
+    println!(
+        "[Catflap listening at {}]",
+        fds.iter()
+            .map(|(fd, at, ty)| format!("{}/{} ({})", at, ty.short(), fd))
+            .collect::<Vec<String>>()
+            .join(", ")
+    );
 
     let mut cmd_args = args.values_of("command").unwrap().collect::<Vec<&str>>();
-
     let cmd = cmd_args.remove(0);
+    let mut cmd = Command::new(cmd);
+    cmd.args(cmd_args);
 
-    let err = Command::new(cmd)
-        .args(cmd_args)
-        .env(env, format!("{}", fd))
-        .exec();
+    if env != "-" {
+        cmd.env(
+            env,
+            fds.iter()
+                .map(|(fd, _, _)| fd.to_string())
+                .collect::<Vec<String>>()
+                .join(","),
+        );
+    }
 
-    println!("Error running command: {}", err);
+    if nenv != "-" {
+        cmd.env(nenv, fds.len().to_string());
+    }
+
+    let err = cmd.exec();
+    Err(format!("Error running command: {}", err))
 }
