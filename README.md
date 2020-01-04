@@ -73,25 +73,30 @@ $ cargo install --force catflap
 ## Usage
 
 ```
-$ catflap [options] [--] <command> [args...]
+$ catflap [options] -- <command> [args...]
 
-$ catflap --env CUSTOM_VAR [--] <command> [args...]
-$ catflap --nenv CUSTOM_VAR_IN_SYSTEMD_STYLE [--] <command> [args...]
+$ catflap --env CUSTOM_VAR -- <command> [args...]
+$ catflap --nenv CUSTOM_VAR_IN_SYSTEMD_STYLE -- <command> [args...]
 
-$ catflap --tcp 0.0.0.0 [--] <command> [args...]
-$ catflap --tcp 10.10.10.10:80 [--] <command> [args...]
-$ catflap --tcp :80 [--] <command> [args...]
+$ catflap --tcp 0.0.0.0 -- <command> [args...]
+$ catflap --tcp 10.10.10.10:80 -- <command> [args...]
+$ catflap --tcp :443 -- <command> [args...]
 
-$ catflap --tcp :80 --tcp :443 --udp :27192 [--] <command> [args...]
+$ catflap --udp :443 -- <command> [args...]
+$ catflap --udp auto -- <command> [args...]
+
+$ catflap --tcp :80 --tcp :443 --tcp auto --udp :27192 -- <command> [args...]
+$ catflap --tcp :80,:443,: --udp :27192 -- <command> [args...]
 ```
 
 |Option|Default|Description|
 |---|---|---|
 |`-e`, `--env`|`LISTEN_FD`|Set this variable to a comma-separated list of FDs. `-` to disable.|
 |`-E`, `--nenv`|`LISTEN_FDS`|Set this variable to the number of opened sockets. `-` to disable.|
-|`-t`, `--tcp`|`127.0.0.1:5000`|Open a TCP socket for this address (IPv4 or IPv6, no domain names) and/or port.|
-|`-u`, `--udp`|`127.0.0.1:5000`|Open a UDP socket for this address (IPv4 or IPv6, no domain names) and/or port.|
-|`-r`, `--raw`|`127.0.0.1:5000`|Open a raw socket for this address (IPv4 or IPv6, no domain names) and/or port (requires root or `CAP_NET_RAW`).|
+|`-r`, `--raw`| - |Open a raw IPv4 socket for this address and/or port (requires root or `CAP_NET_RAW`).|
+|`-t`, `--tcp`| - |Open a TCP/IPv4 socket for this address and/or port.|
+|`-u`, `--udp`| - |Open a UDP/IPv4 socket for this address and/or port.|
+|`--raw6`, `--tcp6`, `--udp6`| - |Same as the above Raw IP / TCP / UDP, but over IPv6.|
 
 ### Breaking change
 
@@ -102,20 +107,45 @@ the old README](https://github.com/passcod/catflap/tree/v1.1.0).
 ### Socket specifics
 
 Each socket option can be passed multiple times. For technically reasons, it's
-not (yet?) possible to get an interleaving of socket types: all TCP sockets
-come first, then all UDP, then all raw, etc.
+not (yet?) possible to get an interleaving of socket types: all raw sockets
+come first, IPv4 then IPv6, then all TCP, then all UDP. The order is
+lexicographic, and thus comes in the same ordering as the options print in the
+help message.
 
 Opening "low" ports (below 1024) often requires root, or `CAP_NET_BIND_SERVICE`.
 
 Ports not explicitly specified will start at 5000 for each socket type and
-increase by 1 for each.
+increase by 1 for each unspecified port.
+
+To use the default (127.0.0.1 or [::1] with auto-specified port), provide
+either a single `:` or `auto`.
+
+To recap:
 
 ```
-$ catflap -t -u -r -t -u -r -t :2000 -u :3000 -r :4000
+$ catflap --tcp6 : -t : -u : -r : -t : -u : -r : -t :2000 -u :3000 -r :4000 <command>
 ```
 
-will provide 5000/tcp, 5001/tcp, 2000/tcp, 5000/udp, 5001/udp, 3000/udp,
-5000/raw, 5001/raw, 4000/raw as FDs 3, 4, 5, 6, 7, 8, 9, 10, 11 respectively.
+will provide 5000/raw, 5001/raw, 4000/raw, 5000/tcp, 5001/tcp, 2000/tcp,
+5000/tcp6, 5000/udp, 5001/udp, 3000/udp as FDs 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+respectively. It has the same behaviour as these next ones (perhaps clearer):
+
+```
+$ catflap -t :,:,:2000 --tcp6 : -u :,:,:3000 -r :,:,:4000 <command>
+$ catflap -t auto,auto,:2000 --tcp6 auto -u auto,auto,:3000 -r auto,auto,:4000 <command>
+$ catflap \
+  --tcp auto  \
+  --tcp auto  \
+  --tcp :2000 \
+  --tcp6 auto \
+  --udp auto  \
+  --udp auto  \
+  --udp :3000 \
+  --raw auto  \
+  --raw auto  \
+  --raw :4000 \
+  -- <command>
+```
 
 ### Command specifics
 
@@ -141,7 +171,7 @@ Catflap prints each socket's actual address and corresponding FD right before
 it execs the given command, so you can find the right port to connect to.
 
 ```
-$ catflap -t :0 cargo watch
+$ catflap -t :0 -- cargo watch
 [Catflap listening at 127.0.0.1:55917 (3)]
 ```
 
