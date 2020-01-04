@@ -1,6 +1,10 @@
-extern crate clap;
-extern crate libc;
-extern crate nix;
+#![forbid(clippy::pedantic)]
+#![deny(clippy::needless_pass_by_value)]
+#![allow(
+    clippy::cognitive_complexity,
+    clippy::shadow_unrelated,
+    clippy::similar_names
+)]
 
 use std::net::SocketAddr;
 use std::os::unix::process::CommandExt;
@@ -35,6 +39,7 @@ fn parse_socket_v4(s: &str, free_port: &mut u16) -> Result<SocketAddr, String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn check_socket_v4(s: String) -> Result<(), String> {
     parse_socket_v4(&s, &mut 0).map(|_| ())
 }
@@ -72,6 +77,7 @@ fn parse_socket_v6(s: &str, free_port: &mut u16) -> Result<SocketAddr, String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn check_socket_v6(s: String) -> Result<(), String> {
     parse_socket_v6(&s, &mut 0).map(|_| ())
 }
@@ -117,10 +123,7 @@ fn main() -> Result<(), String> {
     extract_sockets_of_type!(args, sockets, "udp6", SocketType::Udp6, parse_socket_v6);
 
     if sockets.is_empty() {
-        sockets.push((
-            parse_socket_v4("auto", &mut 5000).map_err(|e| e.to_string())?,
-            SocketType::Tcp4,
-        ));
+        sockets.push((parse_socket_v4("auto", &mut 5000)?, SocketType::Tcp4));
     }
 
     let mut fds = Vec::with_capacity(sockets.len());

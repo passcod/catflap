@@ -20,12 +20,9 @@ pub enum SocketType {
 impl SocketType {
     pub fn short(self) -> &'static str {
         match self {
-            SocketType::Tcp4 => "tcp",
-            SocketType::Tcp6 => "tcp",
-            SocketType::Udp4 => "udp",
-            SocketType::Udp6 => "udp",
-            SocketType::Raw4 => "raw",
-            SocketType::Raw6 => "raw",
+            Self::Tcp4 | Self::Tcp6 => "tcp",
+            Self::Udp4 | Self::Udp6 => "udp",
+            Self::Raw4 | Self::Raw6 => "raw",
         }
     }
 }
@@ -33,7 +30,7 @@ impl SocketType {
 pub fn on(addr: SocketAddr, socktype: SocketType) -> Result<RawFd> {
     let sock = match socktype {
         SocketType::Raw4 => custom_socket(
-            AddressFamily::Inet6,
+            AddressFamily::Inet,
             SockType::Raw,
             SockFlag::empty(),
             libc::IPPROTO_RAW,
@@ -72,10 +69,10 @@ pub fn on(addr: SocketAddr, socktype: SocketType) -> Result<RawFd> {
 
     let result = Ok(())
         .and_then(|_| {
-            if socktype.short() != "raw" {
-                bind(sock, &SockAddr::new_inet(InetAddr::from_std(&addr)))
-            } else {
+            if socktype.short() == "raw" {
                 Ok(())
+            } else {
+                bind(sock, &SockAddr::new_inet(InetAddr::from_std(&addr)))
             }
         })
         .and_then(|_| {
@@ -85,11 +82,9 @@ pub fn on(addr: SocketAddr, socktype: SocketType) -> Result<RawFd> {
                 Ok(())
             }
         })
-        .and_then(|_| {
-            Ok(sock)
-        });
+        .and_then(|_| Ok(sock));
 
-    if !result.is_ok() {
+    if result.is_err() {
         unsafe { libc::close(sock) };
     }
 

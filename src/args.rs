@@ -74,7 +74,7 @@ pub fn parse() -> ArgMatches<'static> {
             .multiple(true)
             .required(true)
         )
-        .after_help("Creates IP sockets and passes their descriptors to a child process using environment variables (by default, in systemd style, with the number of provided FDs in `LISTEN_FDS` — FDs start at 3). The child (or any descendants) can then bind the socket. This is useful for server auto-reloaders, as it avoids EADDRINUSE and request-dropping.\n\nAuto-filled ports (when not provided) start from 5000. You can write `auto` or `:` to use the default (127.0.0.1 or [::1], as appropriate, with auto-filled ports). Regardless of the order you pass options in, they are grouped lexicographically (raw before tcp before udp, v4 before v6) before being opened.\n\nDefault is to open one TCP v4 socket on port 5000.")
+        .after_help("Creates IP sockets and passes their descriptors to a child process using environment variables (by default, in systemd style, with the number of provided FDs in `LISTEN_FDS` - FDs start at 3). The child (or any descendants) can then bind the socket. This is useful for server auto-reloaders, as it avoids EADDRINUSE and request-dropping.\n\nAuto-filled ports (when not provided) start from 5000. You can write `auto` or `:` to use the default (127.0.0.1 or [::1], as appropriate, with auto-filled ports). Regardless of the order you pass options in, they are grouped lexicographically (raw before tcp before udp, v4 before v6) before being opened.\n\nDefault is to open one TCP v4 socket on port 5000.")
 
         .get_matches()
 }
