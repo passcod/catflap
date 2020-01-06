@@ -64,7 +64,7 @@ The usual way:
 $ cargo install catflap
 ```
 
-Or, to upgrade:
+Or, to upgrade (Rust ≤ 1.40):
 
 ```
 $ cargo install --force catflap
