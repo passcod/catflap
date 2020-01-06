@@ -22,7 +22,16 @@ impl SocketType {
         match self {
             Self::Tcp4 | Self::Tcp6 => "tcp",
             Self::Udp4 | Self::Udp6 => "udp",
-            Self::Raw4 | Self::Raw6 => "raw",
+            Self::Raw4 => "raw/ipv4",
+            Self::Raw6 => "raw/ipv6",
+        }
+    }
+
+    pub fn with_addr(self, addr: Option<SocketAddr>) -> String {
+        match (self, addr) {
+            (Self::Raw4, _) | (Self::Raw6, _) => self.short().into(),
+            (_, Some(a)) => format!("{}/{}", a, self.short()),
+            _ => unreachable!(),
         }
     }
 }

@@ -93,9 +93,9 @@ $ catflap --tcp :80,:443,: --udp :27192 -- <command> [args...]
 |---|---|---|
 |`-e`, `--env`|`LISTEN_FD`|Set this variable to a comma-separated list of FDs. `-` to disable.|
 |`-E`, `--nenv`|`LISTEN_FDS`|Set this variable to the number of opened sockets. `-` to disable.|
-|`-r`, `--raw`| - |Open a raw IPv4 socket for this address and/or port (requires root or `CAP_NET_RAW`).|
-|`-t`, `--tcp`| - |Open a TCP/IPv4 socket for this address and/or port.|
-|`-u`, `--udp`| - |Open a UDP/IPv4 socket for this address and/or port.|
+|`-r`, `--raw`|(takes no value)|Open a raw IPv4 socket (requires root or `CAP_NET_RAW`).|
+|`-t`, `--tcp`|(see below)|Open a TCP/IPv4 socket for this address and/or port.|
+|`-u`, `--udp`|(see below)|Open a UDP/IPv4 socket for this address and/or port.|
 |`--raw6`, `--tcp6`, `--udp6`| - |Same as the above Raw IP / TCP / UDP, but over IPv6.|
 
 ### Breaking change

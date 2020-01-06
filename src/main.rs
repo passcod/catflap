@@ -6,6 +6,7 @@
     clippy::similar_names
 )]
 
+use nix::sys::socket::SockAddr;
 use std::net::SocketAddr;
 use std::os::unix::process::CommandExt;
 use std::process::Command;
@@ -129,9 +130,9 @@ fn main() -> Result<(), String> {
     let mut fds = Vec::with_capacity(sockets.len());
     for (addr, socktype) in sockets {
         let fd = sock::on(addr, socktype)
-            .map_err(|e| format!("binding {}/{}: {}", addr, socktype.short(), e))?;
-        let at =
-            sock::at(fd).map_err(|e| format!("naming {}/{}: {}", addr, socktype.short(), e))?;
+            .map_err(|e| format!("binding {}: {}", socktype.with_addr(Some(addr)), e))?;
+        let at = sock::at(fd)
+            .map_err(|e| format!("naming {}: {}", socktype.with_addr(Some(addr)), e))?;
         fds.push((fd, at, socktype));
     }
 
@@ -141,7 +142,15 @@ fn main() -> Result<(), String> {
     println!(
         "[Catflap listening at {}]",
         fds.iter()
-            .map(|(fd, at, ty)| format!("{}/{} ({})", at, ty.short(), fd))
+            .map(|(fd, at, ty)| format!(
+                "{} ({})",
+                ty.with_addr(if let SockAddr::Inet(ref a) = at {
+                    Some(a.to_std())
+                } else {
+                    None
+                }),
+                fd
+            ))
             .collect::<Vec<String>>()
             .join(", ")
     );
