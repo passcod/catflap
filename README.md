@@ -17,7 +17,7 @@ The idea is for tools that reload servers, for instance [cargo watch]:
 
 ```
 $ catflap cargo watch
-[Catflap listening at 127.0.0.1:5000 (3)]
+[Catflap listening at 127.0.0.1:5000/tcp (3)]
 [Running 'cargo run']
    Compiling sample-server v0.1.0 (file:///home/code/rust/test)
     Finished dev [unoptimized + debuginfo] target(s) in 0.71 secs
@@ -50,7 +50,7 @@ or dependence on a particular framework, and it can thus be plugged into your
 development workspace at very little cost.
 
 From version 2.0.0, Catflap provides the same environment variable behaviour as
-systemd, so you can use it to test services directly.
+systemd, so you can use it to test and develop services directly.
 
 [lithos]: https://lithos.readthedocs.io/en/latest/tips/tcp-ports.html
 [systemd]: http://0pointer.de/blog/projects/socket-activation.html
@@ -174,12 +174,13 @@ running your program itself as root.
 ### Port zero
 
 If you specify port zero, the system will pick an unused high port at random.
-Catflap prints each socket's actual address and corresponding FD right before
-it execs the given command, so you can find the right port to connect to.
+Catflap prints each socket's actual address, protocol class, and corresponding
+FD right before it execs the given command, so you can find the right port to
+connect to.
 
 ```
 $ catflap -t :0 -- cargo watch
-[Catflap listening at 127.0.0.1:55917 (3)]
+[Catflap listening at 127.0.0.1:55917/tcp (3)]
 ```
 
 ## Example servers
