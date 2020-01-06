@@ -114,6 +114,9 @@ help message.
 
 Opening "low" ports (below 1024) often requires root, or `CAP_NET_BIND_SERVICE`.
 
+Raw sockets have no address and no port (and thus no value needs providing
+through the option), but require `CAP_NET_RAW`.
+
 Ports not explicitly specified will start at 5000 for each socket type and
 increase by 1 for each unspecified port.
 
@@ -123,16 +126,16 @@ either a single `:` or `auto`.
 To recap:
 
 ```
-$ catflap --tcp6 : -t : -u : -r : -t : -u : -r : -t :2000 -u :3000 -r :4000 <command>
+$ catflap --tcp6 : -t : -u : -r -t : -u : --raw6 -t :2000 -u :3000 -- <command>
 ```
 
-will provide 5000/raw, 5001/raw, 4000/raw, 5000/tcp, 5001/tcp, 2000/tcp,
-5000/tcp6, 5000/udp, 5001/udp, 3000/udp as FDs 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
-respectively. It has the same behaviour as these next ones (perhaps clearer):
+will provide raw/ipv4, raw/ipv6, 5000/tcp, 5001/tcp, 2000/tcp, 5000/tcp6,
+5000/udp, 5001/udp, 3000/udp as FDs 3, 4, 5, 6, 7, 8, 9, 10, 11 respectively.
+It has the same behaviour as these next ones (perhaps clearer):
 
 ```
-$ catflap -t :,:,:2000 --tcp6 : -u :,:,:3000 -r :,:,:4000 <command>
-$ catflap -t auto,auto,:2000 --tcp6 auto -u auto,auto,:3000 -r auto,auto,:4000 <command>
+$ catflap -t :,:,:2000 --tcp6 : -u :,:,:3000 -r --raw6 <command>
+$ catflap -t auto,auto,:2000 --tcp6 auto -u auto,auto,:3000 --raw --raw6 <command>
 $ catflap \
   --tcp auto  \
   --tcp auto  \
@@ -141,9 +144,8 @@ $ catflap \
   --udp auto  \
   --udp auto  \
   --udp :3000 \
-  --raw auto  \
-  --raw auto  \
-  --raw :4000 \
+  --raw       \
+  --raw6      \
   -- <command>
 ```
 
@@ -164,6 +166,11 @@ $ catflap -- sh -c 'foo && bar'
 # Will work!
 ```
 
+You can use `su` to drop privileges for your command while running catflap as
+root or with elevated capabilities. This allows for example to [operate on raw
+sockets](./integrations/raw) or [low ports](./integrations/low-ports) without
+running your program itself as root.
+
 ### Port zero
 
 If you specify port zero, the system will pick an unused high port at random.
@@ -178,11 +185,13 @@ $ catflap -t :0 -- cargo watch
 ## Example servers
 
 These can be built and run directly in the respective folder.
-Then simply: `$ curl -i http://localhost:5000`.
 
 - [Hyper only](./integrations/hyper).
 - [Using Iron](./integrations/iron).
 - [Express on Node.js](./integrations/express).
+- [Reading from raw sockets](./integrations/raw).
+- [HTTP/3 (UDP) with quiche](./integrations/quiche).
+- [Opening low ports](./integrations/low-ports).
 
 ## Etc
 
