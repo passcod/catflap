@@ -116,8 +116,6 @@ fn main() -> Result<(), String> {
 
     let mut sockets = Vec::new();
 
-    extract_sockets_of_type!(args, sockets, "raw", SocketType::Raw4, parse_socket_v4);
-    extract_sockets_of_type!(args, sockets, "raw6", SocketType::Raw6, parse_socket_v6);
     extract_sockets_of_type!(args, sockets, "tcp", SocketType::Tcp4, parse_socket_v4);
     extract_sockets_of_type!(args, sockets, "tcp6", SocketType::Tcp6, parse_socket_v6);
     extract_sockets_of_type!(args, sockets, "udp", SocketType::Udp4, parse_socket_v4);

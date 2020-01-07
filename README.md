@@ -93,10 +93,9 @@ $ catflap --tcp :80,:443,: --udp :27192 -- <command> [args...]
 |---|---|---|
 |`-e`, `--env`|`LISTEN_FD`|Set this variable to a comma-separated list of FDs. `-` to disable.|
 |`-E`, `--nenv`|`LISTEN_FDS`|Set this variable to the number of opened sockets. `-` to disable.|
-|`-r`, `--raw`|(takes no value)|Open a raw IPv4 socket (requires root or `CAP_NET_RAW`).|
 |`-t`, `--tcp`|(see below)|Open a TCP/IPv4 socket for this address and/or port.|
 |`-u`, `--udp`|(see below)|Open a UDP/IPv4 socket for this address and/or port.|
-|`--raw6`, `--tcp6`, `--udp6`| - |Same as the above Raw IP / TCP / UDP, but over IPv6.|
+|`--tcp6`, `--udp6`| - |Same as the above TCP / UDP, but over IPv6.|
 
 ### Breaking change
 
@@ -107,15 +106,11 @@ the old README](https://github.com/passcod/catflap/tree/v1.1.0).
 ### Socket specifics
 
 Each socket option can be passed multiple times. For technically reasons, it's
-not (yet?) possible to get an interleaving of socket types: all raw sockets
-come first, IPv4 then IPv6, then all TCP, then all UDP. The order is
-lexicographic, and thus comes in the same ordering as the options print in the
-help message.
+not (yet?) possible to get an interleaving of socket types: all TCP sockets
+come first, then all UDP, IPv4 then IPv6. The order is lexicographic, and thus
+comes in the same ordering as the options print in the help message.
 
 Opening "low" ports (below 1024) often requires root, or `CAP_NET_BIND_SERVICE`.
-
-Raw sockets have no address and no port (and thus no value needs providing
-through the option), but require `CAP_NET_RAW`.
 
 Ports not explicitly specified will start at 5000 for each socket type and
 increase by 1 for each unspecified port.
@@ -126,16 +121,16 @@ either a single `:` or `auto`.
 To recap:
 
 ```
-$ catflap --tcp6 : -t : -u : -r -t : -u : --raw6 -t :2000 -u :3000 -- <command>
+$ catflap --tcp6 : -t : -u : -t : -u : -t :2000 -u :3000 -- <command>
 ```
 
-will provide raw/ipv4, raw/ipv6, 5000/tcp, 5001/tcp, 2000/tcp, 5000/tcp6,
-5000/udp, 5001/udp, 3000/udp as FDs 3, 4, 5, 6, 7, 8, 9, 10, 11 respectively.
-It has the same behaviour as these next ones (perhaps clearer):
+will provide 5000/tcp, 5001/tcp, 2000/tcp, 5000/tcp6, 5000/udp, 5001/udp,
+3000/udp as FDs 3, 4, 5, 6, 7, 8, 9 respectively. It has the same behaviour as
+these next ones (perhaps clearer):
 
 ```
-$ catflap -t :,:,:2000 --tcp6 : -u :,:,:3000 -r --raw6 <command>
-$ catflap -t auto,auto,:2000 --tcp6 auto -u auto,auto,:3000 --raw --raw6 <command>
+$ catflap -t :,:,:2000 --tcp6 : -u :,:,:3000 <command>
+$ catflap -t auto,auto,:2000 --tcp6 auto -u auto,auto,:3000 <command>
 $ catflap \
   --tcp auto  \
   --tcp auto  \
@@ -144,8 +139,6 @@ $ catflap \
   --udp auto  \
   --udp auto  \
   --udp :3000 \
-  --raw       \
-  --raw6      \
   -- <command>
 ```
 
@@ -167,9 +160,8 @@ $ catflap -- sh -c 'foo && bar'
 ```
 
 You can use `su` to drop privileges for your command while running catflap as
-root or with elevated capabilities. This allows for example to [operate on raw
-sockets](./integrations/raw) or [low ports](./integrations/low-ports) without
-running your program itself as root.
+root or with elevated capabilities. This allows for example to listen on [low
+ports](./integrations/low-ports) without running your program itself as root.
 
 ### Port zero
 
@@ -190,7 +182,6 @@ These can be built and run directly in the respective folder.
 - [Hyper only](./integrations/hyper).
 - [Using Iron](./integrations/iron).
 - [Express on Node.js](./integrations/express).
-- [Reading from raw sockets](./integrations/raw).
 - [HTTP/3 (UDP) with quiche](./integrations/quiche).
 - [Opening low ports](./integrations/low-ports).
 
