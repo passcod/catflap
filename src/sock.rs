@@ -3,54 +3,64 @@ use nix::sys::socket::{
     SockType,
 };
 
+use std::fmt;
 use std::net::SocketAddr;
 use std::os::unix::io::RawFd;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SocketType {
-    Tcp4,
-    Udp4,
-    Tcp6,
-    Udp6,
+pub enum Protocol {
+    Tcp,
+    Udp,
 }
 
-impl SocketType {
-    pub fn short(self) -> &'static str {
-        match self {
-            Self::Tcp4 | Self::Tcp6 => "tcp",
-            Self::Udp4 | Self::Udp6 => "udp",
-        }
-    }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Address {
+    pub proto: Protocol,
+    pub ip: SocketAddr,
+}
 
-    pub fn with_addr(self, addr: Option<SocketAddr>) -> String {
-        match addr {
-            None => self.short().into(),
-            Some(a) => format!("{}/{}", a, self.short()),
-        }
+impl fmt::Display for Address {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}://{}", match self.proto {
+            Protocol::Tcp => "tcp",
+            Protocol::Udp => "udp",
+        }, self.ip)
     }
 }
 
-pub fn on(addr: SocketAddr, socktype: SocketType) -> nix::Result<RawFd> {
-    let sock = match socktype {
-        SocketType::Tcp4 => socket(
+pub fn on(addr: Address) -> nix::Result<RawFd> {
+    let sock = match addr {
+        Address {
+            proto: Protocol::Tcp,
+            ip: SocketAddr::V4(_),
+        } => socket(
             AddressFamily::Inet,
             SockType::Stream,
             SockFlag::empty(),
             Some(SockProtocol::Tcp),
         ),
-        SocketType::Tcp6 => socket(
+        Address {
+            proto: Protocol::Tcp,
+            ip: SocketAddr::V6(_),
+        } => socket(
             AddressFamily::Inet6,
             SockType::Stream,
             SockFlag::empty(),
             Some(SockProtocol::Tcp),
         ),
-        SocketType::Udp4 => socket(
+        Address {
+            proto: Protocol::Udp,
+            ip: SocketAddr::V4(_),
+        } => socket(
             AddressFamily::Inet,
             SockType::Datagram,
             SockFlag::empty(),
             Some(SockProtocol::Udp),
         ),
-        SocketType::Udp6 => socket(
+        Address {
+            proto: Protocol::Udp,
+            ip: SocketAddr::V6(_),
+        } => socket(
             AddressFamily::Inet6,
             SockType::Datagram,
             SockFlag::empty(),
@@ -59,11 +69,9 @@ pub fn on(addr: SocketAddr, socktype: SocketType) -> nix::Result<RawFd> {
     }?;
 
     let result = Ok(())
+        .and_then(|_| bind(sock, &SockAddr::new_inet(InetAddr::from_std(&addr.ip))))
         .and_then(|_| {
-            bind(sock, &SockAddr::new_inet(InetAddr::from_std(&addr)))
-        })
-        .and_then(|_| {
-            if socktype.short() == "tcp" {
+            if let Protocol::Tcp = addr.proto {
                 listen(sock, 1)
             } else {
                 Ok(())
@@ -78,6 +86,9 @@ pub fn on(addr: SocketAddr, socktype: SocketType) -> nix::Result<RawFd> {
     result
 }
 
-pub fn at(sock: RawFd) -> nix::Result<SockAddr> {
-    getsockname(sock)
+pub fn at_port(sock: RawFd) -> nix::Result<Option<u16>> {
+    getsockname(sock).map(|at| match at {
+        SockAddr::Inet(inat) => Some(inat.port()),
+        _ => None
+    })
 }

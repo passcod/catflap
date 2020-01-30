@@ -17,7 +17,7 @@ The idea is for tools that reload servers, for instance [cargo watch]:
 
 ```
 $ catflap cargo watch
-[Catflap listening at 127.0.0.1:5000/tcp (3)]
+[Catflap listening at tcp://127.0.0.1:5000#fd=3]
 [Running 'cargo run']
    Compiling sample-server v0.1.0 (file:///home/code/rust/test)
     Finished dev [unoptimized + debuginfo] target(s) in 0.71 secs
@@ -72,30 +72,46 @@ $ cargo install --force catflap
 
 ## Usage
 
-```
-$ catflap [options] -- <command> [args...]
+```bash
+$ catflap [options] [addresses] -- <command> [args...]
 
-$ catflap --env CUSTOM_VAR -- <command> [args...]
-$ catflap --nenv CUSTOM_VAR_IN_SYSTEMD_STYLE -- <command> [args...]
+$ catflap --env CUSTOM_VAR ...
+$ catflap --nenv CUSTOM_VAR_IN_SYSTEMD_STYLE ...
+$ catflap --port-base 2000
 
-$ catflap --tcp 0.0.0.0 -- <command> [args...]
-$ catflap --tcp 10.10.10.10:80 -- <command> [args...]
-$ catflap --tcp :443 -- <command> [args...]
+# These all do the same thing:
+$ catflap 127.0.0.1 ...
+$ catflap 127.0.0.1:5000 ...
+$ catflap tcp://127.0.0.1 ...
+$ catflap tcp://127.0.0.1:5000 ...
 
-$ catflap --udp :443 -- <command> [args...]
-$ catflap --udp auto -- <command> [args...]
+# So do these:
+$ catflap [::1] ...
+$ catflap [::1]:5000
+$ catflap tcp://[::1] ...
+$ catflap tcp://[::1]:5000 ...
 
-$ catflap --tcp :80 --tcp :443 --tcp auto --udp :27192 -- <command> [args...]
-$ catflap --tcp :80,:443,: --udp :27192 -- <command> [args...]
+# You can use domain names, which will be resolved:
+$ catflap tcp://localhost:8223 ...
+# => listens on the first resolution e.g. 127.0.0.1:8223
+
+# You can add multiple addresses:
+$ catflap 127.0.0.1:9000 [::1]:9000 ...
+# => listens on both IPv4 (port 9000, FD 3) and IPv6 (port 9000, FD 4)
+
+# If left out, ports are incremented for each address:
+$ catflap tcp://localhost 127.0.0.1 [::1] ...
+# => listens on ports 5000, 5001, 5002
+
+# (EXPERIMENTAL) You can listen on UDP sockets:
+$ catflap udp://localhost:1923
 ```
 
 |Option|Default|Description|
 |---|---|---|
 |`-e`, `--env`|`LISTEN_FD`|Set this variable to a comma-separated list of FDs. `-` to disable.|
 |`-E`, `--nenv`|`LISTEN_FDS`|Set this variable to the number of opened sockets. `-` to disable.|
-|`-t`, `--tcp`|(see below)|Open a TCP/IPv4 socket for this address and/or port.|
-|`-u`, `--udp`|(see below)|Open a UDP/IPv4 socket for this address and/or port.|
-|`--tcp6`, `--udp6`| - |Same as the above TCP / UDP, but over IPv6.|
+|`-p`, `--port-base`|`5000`|Set this as the first incremental when filling in missing ports.|
 
 ### Breaking change
 
@@ -103,44 +119,12 @@ If the above options do not work, check your version! Catflap recently changed
 its interface (in version 2.0.0). Upgrade to get these new goodies, or [consult
 the old README](https://github.com/passcod/catflap/tree/v1.1.0).
 
-### Socket specifics
-
-Each socket option can be passed multiple times. For technically reasons, it's
-not (yet?) possible to get an interleaving of socket types: all TCP sockets
-come first, then all UDP, IPv4 then IPv6. The order is lexicographic, and thus
-comes in the same ordering as the options print in the help message.
+### Address specifics
 
 Opening "low" ports (below 1024) often requires root, or `CAP_NET_BIND_SERVICE`.
 
-Ports not explicitly specified will start at 5000 for each socket type and
-increase by 1 for each unspecified port.
-
-To use the default (127.0.0.1 or [::1] with auto-specified port), provide
-either a single `:` or `auto`.
-
-To recap:
-
-```
-$ catflap --tcp6 : -t : -u : -t : -u : -t :2000 -u :3000 -- <command>
-```
-
-will provide 5000/tcp, 5001/tcp, 2000/tcp, 5000/tcp6, 5000/udp, 5001/udp,
-3000/udp as FDs 3, 4, 5, 6, 7, 8, 9 respectively. It has the same behaviour as
-these next ones (perhaps clearer):
-
-```
-$ catflap -t :,:,:2000 --tcp6 : -u :,:,:3000 <command>
-$ catflap -t auto,auto,:2000 --tcp6 auto -u auto,auto,:3000 <command>
-$ catflap \
-  --tcp auto  \
-  --tcp auto  \
-  --tcp :2000 \
-  --tcp6 auto \
-  --udp auto  \
-  --udp auto  \
-  --udp :3000 \
-  -- <command>
-```
+Opening UDP ports (with the `udp://` URL scheme) is experimental and may
+disappear in a later release without breaking semver.
 
 ### Command specifics
 
@@ -171,8 +155,8 @@ FD right before it execs the given command, so you can find the right port to
 connect to.
 
 ```
-$ catflap -t :0 -- cargo watch
-[Catflap listening at 127.0.0.1:55917/tcp (3)]
+$ catflap localhost:0 -- cargo watch
+[Catflap listening at tcp://127.0.0.1:55917#fd=3]
 ```
 
 ## Example servers
@@ -180,7 +164,7 @@ $ catflap -t :0 -- cargo watch
 These can be built and run directly in the respective folder.
 
 - [Hyper only](./integrations/hyper).
-- [Using Iron](./integrations/iron).
+- [Using Tide](./integrations/tide).
 - [Express on Node.js](./integrations/express).
 - [HTTP/3 (UDP) with quiche](./integrations/quiche).
 - [Opening low ports](./integrations/low-ports).
@@ -193,3 +177,5 @@ Made by [Félix Saparelli](https://passcod.name).
 The name is both because it's a small door that you install so that you don't
 have to constantly open and close and open and close a bigger door for your
 furry companion, and as a play on the `netcat` tool. 
+
+Developed in Whangārei, on Ngāpuhi rohe. Sovereignty was never ceded.
