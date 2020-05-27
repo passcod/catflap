@@ -7,7 +7,9 @@ use nix::sys::socket::{
     getsockname,
     InetAddr,
     listen,
+    setsockopt,
     socket,
+    sockopt,
     SockAddr,
     SockFlag,
     SockType,
@@ -25,6 +27,7 @@ pub fn on(addr: SocketAddr) -> Result<RawFd> {
 	));
 
     let result = Ok(())
+		.and_then(|_| setsockopt(sock, sockopt::ReuseAddr, &true))
 		.and_then(|_| bind(sock, &SockAddr::new_inet(
 			InetAddr::from_std(&addr))
 		))
