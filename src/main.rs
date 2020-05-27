@@ -34,7 +34,11 @@ fn main() {
 
     let env = args.value_of("env").unwrap();
 
-	println!("[Catflap listening at {}]", at);
+    let quiet = args.is_present("quiet");
+
+    if !quiet {
+        println!("[Catflap listening at {}]", at);
+    }
 
     let mut cmd_args = args.values_of("command")
         .unwrap()
