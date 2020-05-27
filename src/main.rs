@@ -18,17 +18,17 @@ fn main() {
         args.value_of("host").unwrap(),
         args.value_of("port").unwrap()
     )).unwrap_or_else(|e| {
-        println!("Bad address: {}", e);
+        eprintln!("Bad address: {}", e);
         exit(1);
     });
 
 	let fd = sock::on(addr).unwrap_or_else(|e| {
-        println!("Could not bind: {}", e);
+        eprintln!("Could not bind: {}", e);
         exit(1);
     });
 
 	let at = sock::at(fd).unwrap_or_else(|e| {
-        println!("Could not get address: {}", e);
+        eprintln!("Could not get address: {}", e);
         exit(1);
     });
 
@@ -37,7 +37,7 @@ fn main() {
     let quiet = args.is_present("quiet");
 
     if !quiet {
-        println!("[Catflap listening at {}]", at);
+        eprintln!("[Catflap listening at {}]", at);
     }
 
     let mut cmd_args = args.values_of("command")
@@ -51,5 +51,5 @@ fn main() {
         .env(env, format!("{}", fd))
         .exec();
 
-    println!("Error running command: {}", err);
+    eprintln!("Error running command: {}", err);
 }
