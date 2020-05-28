@@ -23,7 +23,7 @@ pub fn on(addr: SocketAddr) -> Result<RawFd> {
 		AddressFamily::Inet,
 		SockType::Stream,
 		SockFlag::empty(),
-		0 // protocol
+		None // protocol
 	)?;
 
     let result = Ok(())

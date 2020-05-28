@@ -12,6 +12,6 @@ readme = "README.md"
 repository = "https://github.com/passcod/catflap"
 
 [dependencies]
-clap = "2.24.1"
-libc = "0.2.22"
-nix = "0.8.1"
+clap = "2.33.1"
+libc = "0.2.71"
+nix = "0.17.0"
