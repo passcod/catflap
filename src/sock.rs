@@ -19,12 +19,12 @@ use std::net::SocketAddr;
 use std::os::unix::io::RawFd;
 
 pub fn on(addr: SocketAddr) -> Result<RawFd> {
-    let sock = try!(socket(
+    let sock = socket(
 		AddressFamily::Inet,
 		SockType::Stream,
 		SockFlag::empty(),
 		0 // protocol
-	));
+	)?;
 
     let result = Ok(())
 		.and_then(|_| setsockopt(sock, sockopt::ReuseAddr, &true))
