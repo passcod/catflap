@@ -22,7 +22,7 @@ fn main() {
             // At this point, you should attempt to bind to an IP:Port as
             // normal, so the server can still start if not used with
             // Catflap. For this example, we omit that and simply quit.
-            println!("Could not bind to FD!");
+            eprintln!("Could not bind to FD!");
             exit(1);
         });
 
@@ -30,5 +30,5 @@ fn main() {
         .listen(listener, Protocol::http())
         .unwrap();
 
-    println!("Listening");
+    eprintln!("Listening");
 }

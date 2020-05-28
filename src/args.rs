@@ -22,6 +22,10 @@ pub fn parse() -> ArgMatches<'static> {
              .long("port")
              .default_value("5000"))
 
+        .arg(Arg::with_name("quiet")
+             .short("q")
+             .long("quiet"))
+
         .arg(Arg::with_name("command")
              .multiple(true)
              .required(true))
