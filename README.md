@@ -53,6 +53,8 @@ development workspace at very little cost.
 
 ## Install
 
+**You should probably use [systemfd](https://github.com/mitsuhiko/systemfd) instead!** It does the same thing but follows systemd semantics closely.
+
 The usual way:
 
 ```
