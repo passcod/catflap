@@ -18,4 +18,4 @@ Test with:
 $ curl -i http://localhost:5000
 ```
 
-[Iron]: http://ironframework.io/
+[Iron]: https://github.com/iron/iron
